@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        args: ["--requirepass", "$(REDIS_PASSWORD)"]
+        envFrom:
+        - secretRef:
+            name: redis-secret
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis

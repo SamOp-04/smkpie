@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+data:
+  MODEL_UPDATE_INTERVAL: "60"
+  ANOMALY_THRESHOLD: "0.85"

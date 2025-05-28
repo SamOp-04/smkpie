@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+      - name: worker
+        image: your-registry/celery-worker:latest
+        envFrom:
+        - configMapRef:
+            name: celery-config
+        - secretRef:
+            name: celery-secrets
+        command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]

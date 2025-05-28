@@ -1,0 +1,11 @@
+default:
+  epochs: 10
+  batch_size: 32
+  layers:
+    - type: dense
+      units: 64
+      activation: relu
+    - type: dense
+      units: 1
+      activation: sigmoid
+  optimizer: adam

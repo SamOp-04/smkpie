@@ -1,1 +1,25 @@
 .env*
+
+# Python caches and bytecode
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+
+# Project data and model artifacts
+/final/data/
+/final/model_storage/*.pt
+/final/model_storage/*.keras
+/final/model_storage/*.joblib
+/final/model_storage/*.json
+
+# Docker/K8s local artifacts
+*.tar
+*.log

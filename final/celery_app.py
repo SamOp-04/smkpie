@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 from core.config import settings
 
 celery = Celery(
@@ -14,3 +15,15 @@ celery.conf.update(
     result_expires=3600,
     worker_prefetch_multiplier=4
 )
+
+# Schedule periodic tasks with Celery Beat
+celery.conf.beat_schedule = {
+    'check-model-performance-daily': {
+        'task': 'tasks.check_model_performance',
+        'schedule': crontab(hour=2, minute=0),  # Run daily at 2 AM
+    },
+    'evaluate-retraining-weekly': {
+        'task': 'tasks.evaluate_retraining_need',
+        'schedule': crontab(day_of_week=0, hour=3, minute=0),  # Run Sunday at 3 AM
+    },
+}

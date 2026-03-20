@@ -1,0 +1,54 @@
+{
+  "family": "smkpie-celery-beat",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::371601828313:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::371601828313:role/smkpieEcsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "celery-beat",
+      "image": "371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime@sha256:e46725bd9e8cd523a9f8c60a21e946aaa6fdf5529bdc45ba1b10281710fabe41",
+      "essential": true,
+      "command": [
+        "celery",
+        "-A",
+        "celery_app",
+        "beat",
+        "--loglevel=info"
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/smkpie-celery-beat",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        { "name": "REDIS_HOST", "value": "localhost" },
+        { "name": "REDIS_PORT", "value": "6379" },
+        { "name": "MODEL_UPDATE_INTERVAL", "value": "3600" },
+        { "name": "ANOMALY_THRESHOLD", "value": "0.7" },
+        { "name": "MAX_REQUESTS_PER_MINUTE", "value": "100" },
+        { "name": "AWS_REGION", "value": "ap-south-1" },
+        { "name": "S3_BUCKET", "value": "smkpie-models" },
+        { "name": "SMTP_HOST", "value": "smtp.gmail.com" },
+        { "name": "SMTP_PORT", "value": "587" },
+        { "name": "EMAIL_SENDER", "value": "noreply@smkpie.local" }
+      ],
+      "secrets": [
+        { "name": "SUPABASE_URL", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SUPABASE_URL" },
+        { "name": "SUPABASE_KEY", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SUPABASE_KEY" },
+        { "name": "SUPABASE_SERVICE_ROLE_KEY", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SUPABASE_SERVICE_ROLE_KEY" },
+        { "name": "SUPABASE_JWT_SECRET", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SUPABASE_JWT_SECRET" },
+        { "name": "REDIS_PASSWORD", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/REDIS_PASSWORD" },
+        { "name": "AWS_ACCESS_KEY_ID", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/AWS_ACCESS_KEY_ID" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/AWS_SECRET_ACCESS_KEY" },
+        { "name": "SMTP_USER", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SMTP_USER" },
+        { "name": "SMTP_PASSWORD", "valueFrom": "arn:aws:ssm:ap-south-1:371601828313:parameter/smkpie/SMTP_PASSWORD" }
+      ]
+    }
+  ]
+}

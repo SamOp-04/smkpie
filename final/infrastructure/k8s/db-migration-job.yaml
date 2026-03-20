@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-schema-migration
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: migration
+        image: 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: api-config
+        - secretRef:
+            name: api-secrets
+        command: ["python", "scripts/apply_schema_updates.py"]
+  backoffLimit: 3

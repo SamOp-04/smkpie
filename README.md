@@ -178,8 +178,13 @@ Test status after fixes:
 	- `docker build -t smkpie-runtime:latest .`
 	- `docker tag smkpie-runtime:latest 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest`
 	- `docker push 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest`
-2. K8s manifests already reference the ECR image URI in API/Celery deployments.
-3. Apply manifests to your EKS context when available.
+2. Use ECS/Fargate task definitions in `final/infrastructure/ecs/`:
+	- `taskdef-api.json`
+	- `taskdef-celery-worker.json`
+	- `taskdef-celery-beat.json`
+	- `SERVICE_BOOTSTRAP.md` (one-time ECS service creation)
+3. Register task revisions and roll services:
+	- `powershell -ExecutionPolicy Bypass -File infrastructure/ecs/deploy-ecs.ps1`
 
 ## Quick Start (Local)
 
@@ -205,7 +210,7 @@ pytest tests -q
 curl http://localhost:8000/health
 ```
 
-## Quick Start (AWS/EKS)
+## Quick Start (AWS/ECS)
 
 Run from the `final` folder.
 
@@ -221,22 +226,18 @@ aws ecr get-login-password --region ap-south-1 |
 docker tag smkpie-runtime:latest 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
 docker push 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
 
-# 4) Point kubectl to EKS cluster
-aws eks update-kubeconfig --region ap-south-1 --name cyber-api-cluster
+# 4) Register ECS task definitions and deploy services
+powershell -ExecutionPolicy Bypass -File infrastructure/ecs/deploy-ecs.ps1 \
+	-Region ap-south-1 \
+	-Cluster smkpie-cluster \
+	-ApiService smkpie-api-svc \
+	-WorkerService smkpie-celery-worker-svc \
+	-BeatService smkpie-celery-beat-svc
 
-# 5) Deploy manifests
-kubectl apply -f infrastructure/k8s/configmap.yaml
-kubectl apply -f infrastructure/k8s/secrets.yaml
-kubectl apply -f infrastructure/k8s/network-policies.yaml
-kubectl apply -f infrastructure/k8s/redis/deployment.yaml
-kubectl apply -f infrastructure/k8s/api/deployment.yaml
-kubectl apply -f infrastructure/k8s/celery/deployment.yaml
-kubectl apply -f infrastructure/k8s/ingress/ingress.yaml
-
-# 6) Verify rollout
-kubectl get pods -o wide
-kubectl get svc
-kubectl get ingress
+# 5) Verify service health
+aws ecs describe-services --region ap-south-1 --cluster smkpie-cluster \
+	--services smkpie-api-svc smkpie-celery-worker-svc smkpie-celery-beat-svc \
+	--query "services[].{name:serviceName,status:status,running:runningCount,desired:desiredCount}"
 ```
 
 ## Notes

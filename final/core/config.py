@@ -3,7 +3,7 @@
 import secrets
 from datetime import datetime
 from fastapi import Request
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     # Supabase

@@ -1,6 +1,7 @@
 import os
 import logging
 import shutil
+import threading
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import torch
@@ -25,9 +26,21 @@ class _InferenceMLP(nn.Module):
         return self.network(x)
 
 class ModelManager:
-    def __init__(self, base_path="model_storage"):
-        self.base_path = base_path
-        os.makedirs(base_path, exist_ok=True)
+    """Thread-safe singleton for loading and managing ML model assets."""
+
+    _instance = None
+    _model = None
+    _preprocessor = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if not cls._instance:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+                    cls._instance.base_path = "model_storage"
+                    os.makedirs(cls._instance.base_path, exist_ok=True)
+        return cls._instance
         
     @property
     def model_path(self):
@@ -38,23 +51,32 @@ class ModelManager:
         return os.path.join(self.base_path, "preprocessor.joblib")
 
     def load_assets(self):
-        """Load both model and preprocessor"""
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(f"Model not found at {self.model_path}")
-        if not os.path.exists(self.preprocessor_path):
-            raise FileNotFoundError(f"Preprocessor not found at {self.preprocessor_path}")
+        """Load both model and preprocessor (cached after first load)"""
+        if self._model is None or self._preprocessor is None:
+            with self._lock:
+                if self._model is None or self._preprocessor is None:
+                    if not os.path.exists(self.model_path):
+                        raise FileNotFoundError(f"Model not found at {self.model_path}")
+                    if not os.path.exists(self.preprocessor_path):
+                        raise FileNotFoundError(f"Preprocessor not found at {self.preprocessor_path}")
 
-        from ml.serving.preprocessor import CyberPreprocessor
+                    from ml.serving.preprocessor import CyberPreprocessor
 
-        checkpoint = torch.load(self.model_path, map_location="cpu")
-        input_dim = int(checkpoint.get("input_dim", 18))
+                    checkpoint = torch.load(self.model_path, map_location="cpu")
+                    input_dim = int(checkpoint.get("input_dim", 18))
 
-        model = _InferenceMLP(input_dim)
-        model.load_state_dict(checkpoint["state_dict"])
-        model.eval()
+                    model = _InferenceMLP(input_dim)
+                    model.load_state_dict(checkpoint["state_dict"])
+                    model.eval()
 
-        preprocessor = CyberPreprocessor.load(self.preprocessor_path)
-        return model, preprocessor
+                    preprocessor = CyberPreprocessor.load(self.preprocessor_path)
+
+                    # Cache the loaded assets
+                    self._model = model
+                    self._preprocessor = preprocessor
+                    logging.info("Model assets loaded and cached successfully")
+
+        return self._model, self._preprocessor
 
     def save_assets(self, model, preprocessor):
         """Save both model and preprocessor"""

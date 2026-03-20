@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
+        image: 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime@sha256:fe8dd458d52e4dbd1aaada0fc59aabe9783f6b5e4c70da7dcdb904b9df8156cd
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -22,3 +22,32 @@ spec:
         - secretRef:
             name: api-secrets
         command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-beat
+  template:
+    metadata:
+      labels:
+        app: celery-beat
+    spec:
+      containers:
+      - name: beat
+        image: 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: api-config
+        - secretRef:
+            name: api-secrets
+        command: ["celery", "-A", "celery_app", "beat", "--loglevel=info"]
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 512Mi

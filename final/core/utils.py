@@ -15,3 +15,13 @@ def generate_api_token() -> str:
 
 def get_redis_connection():
     return redis_manager.get_connection()
+
+
+def recommended_action(score: float) -> str:
+    if score >= 0.95:
+        return "block"
+    if score >= 0.75:
+        return "throttle"
+    if score >= 0.5:
+        return "monitor"
+    return "allow"

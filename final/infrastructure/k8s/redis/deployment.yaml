@@ -3,16 +3,25 @@ kind: Deployment
 metadata:
   name: redis
 spec:
-  replicas: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
   template:
+    metadata:
+      labels:
+        app: redis
     spec:
       containers:
       - name: redis
         image: redis:alpine
         args: ["--requirepass", "$(REDIS_PASSWORD)"]
-        envFrom:
-        - secretRef:
-            name: redis-secret
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: REDIS_PASSWORD
         ports:
         - containerPort: 6379
 ---
@@ -21,7 +30,8 @@ kind: Service
 metadata:
   name: redis
 spec:
-  ports:
-  - port: 6379
   selector:
     app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379

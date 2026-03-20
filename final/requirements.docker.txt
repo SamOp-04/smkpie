@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.68.1
 uvicorn==0.15.0
 python-multipart==0.0.5
@@ -5,7 +6,7 @@ supabase==1.0.2
 redis==4.1.0
 celery==5.2.3
 boto3==1.40.59
-torch==2.8.0
+torch==2.8.0+cpu
 pandas==3.0.1
 scikit-learn==1.8.0
 joblib==1.5.2

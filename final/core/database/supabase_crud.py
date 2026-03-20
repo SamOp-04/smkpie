@@ -1,15 +1,20 @@
 # core/database/supabase_crud.py
 
-from supabase import create_client, Client
+from typing import Any
 from core.config import settings
 from uuid import uuid4
 
 class SupabaseCRUD:
     def __init__(self):
-        # Initialize Supabase client with service role key for full access
-        self.client: Client = create_client(
+        # Lazy import keeps the app bootable when auth features are not enabled.
+        try:
+            from supabase import create_client
+        except ModuleNotFoundError as exc:
+            raise RuntimeError("supabase package is required for auth/settings features") from exc
+
+        self.client: Any = create_client(
             settings.SUPABASE_URL,
-            settings.SUPABASE_SERVICE_ROLE_KEY
+            settings.SUPABASE_SERVICE_ROLE_KEY,
         )
 
     def create_user(self, email: str, password: str):

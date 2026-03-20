@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.utils import setup_logging
 from core.database.redis_manager import redis_manager
-from api.routes import auth, predict, health, settings, logs
+from api.routes import auth, predict, health, settings, logs, admin, model_metrics
 
 app = FastAPI()
 
@@ -23,6 +23,8 @@ app.include_router(predict.router)
 app.include_router(health.router)
 app.include_router(settings.router)
 app.include_router(logs.router)
+app.include_router(admin.router)
+app.include_router(model_metrics.router)
 # Root Route
 @app.get("/")
 async def root():

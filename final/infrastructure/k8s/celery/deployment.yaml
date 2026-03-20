@@ -14,10 +14,11 @@ spec:
     spec:
       containers:
       - name: worker
-        image: your-registry/celery-worker:latest
+        image: 371601828313.dkr.ecr.ap-south-1.amazonaws.com/smkpie-runtime:latest
+        imagePullPolicy: Always
         envFrom:
         - configMapRef:
-            name: celery-config
+            name: api-config
         - secretRef:
-            name: celery-secrets
+            name: api-secrets
         command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]

@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 router = APIRouter()
 
 class LogData(BaseModel):

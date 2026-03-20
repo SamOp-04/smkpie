@@ -5,3 +5,5 @@ metadata:
 data:
   MODEL_UPDATE_INTERVAL: "60"
   ANOMALY_THRESHOLD: "0.85"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"

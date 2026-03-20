@@ -6,6 +6,8 @@ spec:
   podSelector:
     matchLabels:
       app: api
+  policyTypes:
+  - Egress
   egress:
   - to:
     - podSelector:
@@ -14,3 +16,10 @@ spec:
     ports:
     - protocol: TCP
       port: 6379
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
